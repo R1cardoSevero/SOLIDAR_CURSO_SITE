@@ -1,0 +1,102 @@
+@import "tailwindcss";
+:root{
+    --time-animation-heart:.3s;
+}
+
+@theme {
+    --color-background-card: #6e8b09;
+}
+
+body{
+    overflow-x: hidden;
+}
+
+.haste{
+    display: block;
+    position: absolute;
+    height: 15px;
+    border-radius: 100px;
+}
+
+.haste::after{
+    content: '';
+    background-color: red;
+    position: absolute;
+    left: 0;
+    height: 100%;
+    width: 0px;
+    animation: animation-heart var(--time-animation-heart) linear forwards;
+    border-radius: 50px;
+}
+
+#haste-1 {
+    transform: translateY(-50%);
+    top: 50%;
+    left: 0;
+    width: 60vw;
+    z-index: -1;
+    border-radius: 0px 50px 50px 0px;
+}
+
+#haste-2{
+    width: 20vw;
+    right: -9.5vw;
+    bottom: -.3vw;
+    rotate: -70deg;
+    transform: translateX(10vw);
+}
+
+#haste-3{
+    width: 40vw;
+    right: -10vw;
+    rotate: 150deg;
+    left: 0;
+    transform: translateX(20vw);
+}
+
+#haste-4{
+    width: 20vw;
+    right: -10vw;
+    rotate: -160deg;
+    top: 0;
+    transform: translateX(10vw);
+}
+
+#haste-5{
+    width: 30vw;
+    left: 4.6vw;
+    rotate: 80deg;
+    top: 0;
+    transform: translateX(14.7vw);
+}
+
+
+#haste-1::after{
+    animation-delay: calc(var(--time-animation-heart));
+    border-radius: 0px 50px 50px 0px;
+}
+
+#haste-2::after{
+    animation-delay: calc(var(--time-animation-heart) * 2);
+}
+
+#haste-3::after{
+    animation-delay: calc(var(--time-animation-heart) * 3);
+}
+
+#haste-4::after{
+    animation-delay: calc(var(--time-animation-heart) * 4);
+}
+
+#haste-5::after{
+    animation-delay: calc(var(--time-animation-heart) * 5);
+}
+
+@keyframes animation-heart {
+    from{
+        width: 0px;
+    }
+    to{
+        width: 100%;
+    }
+}
