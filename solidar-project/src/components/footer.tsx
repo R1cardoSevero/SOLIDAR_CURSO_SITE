@@ -21,7 +21,7 @@ const footerLinks=[
         ]
     },
     {
-        id:1,
+        id:2,
         titulo:'Links Rápidos',
         links:[
             {
@@ -46,11 +46,11 @@ const footerLinks=[
 export default function Footer(){
     return <footer id="contact-section" className="bg-primary-color flex m-1 relative">
         {footerLinks.map((secaoLink)=>(
-            <div className="p-10 text-secondary-color">
+            <div key={secaoLink.id} className="p-10 text-secondary-color">
                 <h3 className="py-4 font-bold">{secaoLink.titulo}</h3>
                 <ul>
                     {secaoLink.links.map((link)=>(
-                        <li className="pb-2 font-light"><a href={link.url}>{link.titulo}</a></li>
+                        <li key={link.id} className="pb-2 font-light"><a href={link.url}>{link.titulo}</a></li>
                     ))}
                 </ul>
             </div>

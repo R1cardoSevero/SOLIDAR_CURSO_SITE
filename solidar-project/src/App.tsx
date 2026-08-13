@@ -1,35 +1,39 @@
-import DoationSection from './components/doationSection'
-import Footer from './components/footer'
-import Header from './components/header'
-import HomeSection from './components/homeSection'
-import Parallax from './components/parallax'
-import PillarsSection from './components/pillarsSection'
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import PaginaDoacao from './components/paginaDoacao'
+import LoginPage from './components/loginPage'
+import HomePage from './components/homePage'
+import PaginaUsuario from './components/paginaUsuario'
 
 
 export default function App() {
   return (
     <>
       <Routes>
-        {/* Rota da Home, com todo o conteúdo da página inicial */}
+        {/* Rota da tela de login*/}
         <Route
           path="/"
           element={
             <>
-              <Header />
-              <HomeSection />
-              <Parallax tituloParallax={"PILARES"} />
-              <PillarsSection />
-              <Parallax tituloParallax={"DOACAO"} />
-              <DoationSection />
-              <Footer />
+              <LoginPage />
+            </>
+          }
+        />
+
+        {/* Rota da Home, com todo o conteúdo da página inicial */}
+        <Route
+          path="/home"
+          element={
+            <>
+              <HomePage />
             </>
           }
         />
 
         {/* Rota da página de doação */}
-        <Route path="/pagina-doacao" element={<PaginaDoacao />} />
+        <Route path="/home/pagina-doacao" element={<PaginaDoacao />} />
+
+        {/* Rota da página do usuário, com os locais de doação dele */}
+        <Route path="/pagina-usuario" element={<PaginaUsuario />} />
       </Routes>
     </>
   );
