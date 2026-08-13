@@ -8,7 +8,7 @@ export default function CardStars({ numeroEstrelas }: CardStarsProps) {
             {Array.from({ length: 5 }).map((_, index) => (
                 <span
                     key={index}
-                    className={`material-icons  ${index < numeroEstrelas?'text-yellow-400':'text-gray-400'}`}
+                    className={`material-icons  ${index < numeroEstrelas?'text-yellow-600':'text-gray-400'}`}
                 >
                     star
                 </span>

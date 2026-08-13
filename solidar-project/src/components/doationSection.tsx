@@ -125,7 +125,7 @@ export default function DoationSection() {
     });
 
     return (
-        <section id="doation-section" className="min-h-screen flex">
+        <section id="doation-section" className="min-h-screen py-30 flex">
             <SideBarFilters filtros={filtros} onEscolhendoFiltro={escolhendoFiltro} />
             <article className="grid grid-cols-3 gap-2 items-start auto-rows-60">
                 {doadoresFiltrados.map((doador) => (

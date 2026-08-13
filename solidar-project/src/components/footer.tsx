@@ -44,7 +44,7 @@ const footerLinks=[
 ]
 
 export default function Footer(){
-    return <footer id="contact-section" className="bg-primary-color w-full flex m-1">
+    return <footer id="contact-section" className="bg-primary-color flex m-1 relative">
         {footerLinks.map((secaoLink)=>(
             <div className="p-10 text-secondary-color">
                 <h3 className="py-4 font-bold">{secaoLink.titulo}</h3>
@@ -55,5 +55,6 @@ export default function Footer(){
                 </ul>
             </div>
         ))}
+        <h5 className="text-gray-300 absolute bottom-0 p-2 left-1/2 -translate-x-1/2">Desenvolvido por Ricardo Müller Severo</h5>
     </footer>
 }

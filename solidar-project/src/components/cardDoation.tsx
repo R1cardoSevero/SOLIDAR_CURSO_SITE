@@ -1,4 +1,5 @@
 import CardStars from './cardStars'
+import { useNavigate } from "react-router-dom";
 
 interface CardDoationProps {
     infoCard: {
@@ -10,6 +11,7 @@ interface CardDoationProps {
 }
 
 export default function CardDoation({ infoCard }: CardDoationProps) {
+    const navigate = useNavigate();
     return (
         <div className=" relative max-w-xs m-10 rounded-2xl">
             <CardStars numeroEstrelas={infoCard.numeroEstrelas}/>
@@ -27,7 +29,7 @@ export default function CardDoation({ infoCard }: CardDoationProps) {
                         </span>
                     ))}
                 </div>
-                <button className="bg-white  rounded-xl py-2 text-primary-color">Conhecer o local</button>
+                <button onClick={() => navigate("/pagina-doacao")} className="bg-white  rounded-xl py-2 text-primary-color">Conhecer o local</button>
             </div>
         </div>
     );
