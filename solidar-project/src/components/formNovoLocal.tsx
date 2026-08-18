@@ -40,7 +40,7 @@ interface RespostaViaCep {
     erro?: boolean | string
 }
 
-const MAX_FOTOS = 6
+
 
 // Enquanto a tabela categoria não responde, usa os números de 1 a 20
 const CATEGORIAS_PADRAO: Categoria[] = Array.from({ length: 20 }, (_, indice) => ({
@@ -400,7 +400,7 @@ export default function FormNovoLocal({ id_usuario, onCriado }: { id_usuario: st
             )}
 
             <label className="flex flex-col gap-1 pt-2">
-                Fotos (de 1 até {MAX_FOTOS})
+                Fotos (Escolha uma foto bonita para seu anúncio)
                 <input
                     type="file"
                     accept="image/*"

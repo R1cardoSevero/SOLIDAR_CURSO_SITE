@@ -14,7 +14,7 @@ interface SideBarFiltersProps {
 
 export default function SideBarFilters({ filtros, onEscolhendoFiltro }: SideBarFiltersProps) {
     return (
-        <div className="bg-secondary h-fit max-h-[85vh] overflow-y-auto shrink-0 w-80 m-4 rounded-3xl p-5">
+        <div className="bg-secondary h-fit max-h-[85vh] overflow-y-auto shrink-0 w-80 m-4 rounded-lg p-5">
             <h3 className="font-bold text-center text-lg">Filtros</h3>
             {filtros.map((filtro) => (
                 <div key={filtro.id}>
