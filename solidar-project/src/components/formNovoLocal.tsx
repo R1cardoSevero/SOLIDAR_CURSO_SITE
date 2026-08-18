@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { supabase } from '../bd/supabase'
-
-interface Coordenadas {
-    latitude: number | null
-    longitude: number | null
-}
+import { coordenadasDoEndereco } from '../lib/geocodificar'
 
 interface Categoria {
     id_categoria: number
@@ -17,18 +13,6 @@ interface EnderecoCep {
     bairro: string
     cidade: string
     estado: string
-    latitude: number | null
-    longitude: number | null
-}
-
-// Resposta da BrasilAPI, usada só pelas coordenadas do cep
-interface RespostaBrasilApi {
-    location?: {
-        coordinates?: {
-            latitude?: string
-            longitude?: string
-        }
-    }
 }
 
 // Resposta da ViaCEP (api aberta, sem chave): https://viacep.com.br/
@@ -41,6 +25,9 @@ interface RespostaViaCep {
 }
 
 
+
+// Quantas fotos o anúncio aceita por local
+const MAX_FOTOS = 5
 
 // Enquanto a tabela categoria não responde, usa os números de 1 a 20
 const CATEGORIAS_PADRAO: Categoria[] = Array.from({ length: 20 }, (_, indice) => ({
@@ -89,42 +76,15 @@ export default function FormNovoLocal({ id_usuario, onCriado }: { id_usuario: st
         return () => { ativo = false }
     }, [])
 
-    // A ViaCEP não devolve coordenadas, então elas vêm da BrasilAPI.
-    // É só o que dá a distância até o usuário depois, e falhar aqui não impede
-    // o cadastro: o local fica sem distância.
-    async function buscarCoordenadas(cepLimpo: string): Promise<Coordenadas> {
-        try {
-            const resposta = await fetch(`https://brasilapi.com.br/api/cep/v2/${cepLimpo}`)
-
-            if (!resposta.ok) return { latitude: null, longitude: null }
-
-            const dados: RespostaBrasilApi = await resposta.json()
-            const coordenadas = dados.location?.coordinates
-
-            if (!coordenadas?.latitude || !coordenadas?.longitude) {
-                return { latitude: null, longitude: null }
-            }
-
-            return {
-                latitude: Number(coordenadas.latitude),
-                longitude: Number(coordenadas.longitude)
-            }
-        } catch (erro) {
-            console.error('Erro ao buscar as coordenadas do CEP:', erro)
-            return { latitude: null, longitude: null }
-        }
-    }
-
-    // Preenche rua, bairro, cidade e estado a partir do cep digitado
+    // Preenche rua, bairro, cidade e estado a partir do cep digitado. As
+    // coordenadas não saem daqui: elas dependem do número, que o usuário digita
+    // depois, então são buscadas só no envio do formulário.
     async function buscarCep(cepLimpo: string) {
         setBuscandoCep(true)
         setInfoErro("")
 
         try {
-            const [resposta, coordenadas] = await Promise.all([
-                fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`),
-                buscarCoordenadas(cepLimpo)
-            ])
+            const resposta = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
 
             if (!resposta.ok) {
                 throw new Error('Não foi possível consultar o CEP agora. Tente novamente.')
@@ -142,9 +102,7 @@ export default function FormNovoLocal({ id_usuario, onCriado }: { id_usuario: st
                 rua: dados.logradouro ?? "",
                 bairro: dados.bairro ?? "",
                 cidade: dados.localidade ?? "",
-                estado: dados.uf ?? "",
-                latitude: coordenadas.latitude,
-                longitude: coordenadas.longitude
+                estado: dados.uf ?? ""
             })
         } catch (erro) {
             setEndereco(null)
@@ -211,8 +169,18 @@ export default function FormNovoLocal({ id_usuario, onCriado }: { id_usuario: st
         return links
     }
 
-    // O endereço entra primeiro porque o local guarda o id_endereco dele
+    // O endereço entra primeiro porque o local guarda o id_endereco dele.
+    // As coordenadas saem do endereço já com o número, que é o que dá a
+    // distância certa até quem procura o local depois.
     async function inserirEndereco(dados: EnderecoCep) {
+        const coordenadas = await coordenadasDoEndereco({
+            rua: dados.rua,
+            numero: numero.trim(),
+            cidade: dados.cidade,
+            estado: dados.estado,
+            cep
+        })
+
         const { data, error } = await supabase
             .from('endereco')
             .insert({
@@ -222,8 +190,8 @@ export default function FormNovoLocal({ id_usuario, onCriado }: { id_usuario: st
                 cidade: dados.cidade,
                 estado: dados.estado,
                 cep,
-                latitude: dados.latitude,
-                longitude: dados.longitude
+                latitude: coordenadas.latitude,
+                longitude: coordenadas.longitude
             })
             .select('id_endereco')
             .single<{ id_endereco: string }>()

@@ -28,6 +28,32 @@ interface LocalDoacao extends LocalDb {
     endereco: EnderecoDb | null
 }
 
+// As fotos ficam no bucket "fotos" e a tabela guarda só o link público delas.
+// Para apagar o arquivo é preciso o caminho de volta, que é o que vem depois
+// desse trecho da URL.
+const MARCADOR_BUCKET = '/object/public/fotos/'
+
+function caminhoNoBucket(url: string) {
+    const partes = url.split(MARCADOR_BUCKET)
+    return partes.length === 2 ? decodeURIComponent(partes[1]) : null
+}
+
+// Sobra de arquivo no bucket não quebra nada para o usuário, então uma falha
+// aqui só é registrada: o local já saiu das tabelas nesse ponto.
+async function removerFotos(fotos: string[] | null) {
+    const caminhos = (fotos ?? [])
+        .map(caminhoNoBucket)
+        .filter((caminho): caminho is string => Boolean(caminho))
+
+    if (caminhos.length === 0) return
+
+    const { error } = await supabase.storage.from('fotos').remove(caminhos)
+
+    if (error) {
+        console.error('Erro ao apagar as fotos do local:', error)
+    }
+}
+
 // Busca os endereços de todos os locais numa consulta só
 async function buscarEnderecos(locais: LocalDb[]): Promise<EnderecoDb[]> {
     const ids = [...new Set(locais
@@ -56,6 +82,9 @@ export default function PaginaUsuario() {
     const id_usuario = location.state?.id ?? ""
     const [locais, setLocais] = useState<LocalDoacao[]>([])
     const [cadastrando, setCadastrando] = useState<boolean>(false)
+    // Guarda o id do local que está sendo excluído, para travar só o botão dele
+    const [excluindo, setExcluindo] = useState<string>("")
+    const [infoErro, setInfoErro] = useState<string>("")
 
     const buscarLocais = useCallback(async (id: string): Promise<LocalDoacao[]> => {
         const { data, error } = await supabase
@@ -94,6 +123,57 @@ export default function PaginaUsuario() {
         buscarLocais(id_usuario).then(setLocais)
     }
 
+    // As avaliações e o endereço apontam para o local, então a ordem importa:
+    // primeiro o que depende dele, depois ele, e por último o endereço, que é
+    // só desse local. As fotos ficam para o fim porque, se algo falhar antes,
+    // o local continua inteiro em vez de ficar sem imagem.
+    async function excluirLocal(local: LocalDoacao) {
+        const confirmado = window.confirm(
+            `Excluir "${local.nome}"? As avaliações e as fotos do local também são apagadas, e isso não pode ser desfeito.`
+        )
+
+        if (!confirmado) return
+
+        setExcluindo(local.id_local)
+        setInfoErro("")
+
+        try {
+            const { error: erroAvaliacoes } = await supabase
+                .from('avaliacao')
+                .delete()
+                .eq('id_local', local.id_local)
+
+            if (erroAvaliacoes) throw erroAvaliacoes
+
+            const { error: erroLocal } = await supabase
+                .from('local_doacao')
+                .delete()
+                .eq('id_local', local.id_local)
+
+            if (erroLocal) throw erroLocal
+
+            if (local.id_endereco) {
+                const { error: erroEndereco } = await supabase
+                    .from('endereco')
+                    .delete()
+                    .eq('id_endereco', local.id_endereco)
+
+                if (erroEndereco) {
+                    console.error('Erro ao apagar o endereço do local:', erroEndereco)
+                }
+            }
+
+            await removerFotos(local.fotos)
+
+            setLocais((atuais) => atuais.filter((item) => item.id_local !== local.id_local))
+        } catch (erro) {
+            console.error('Erro ao excluir o local:', erro)
+            setInfoErro(`Não foi possível excluir "${local.nome}". Tente novamente.`)
+        } finally {
+            setExcluindo("")
+        }
+    }
+
     return <main className="min-h-screen p-10">
         <div className="flex items-center gap-3">
             <User className="w-10 h-10 shrink-0 rounded-full bg-secondary-color p-2" strokeWidth={1.5} />
@@ -124,12 +204,22 @@ export default function PaginaUsuario() {
                         </button>
                     )}
                 </div>
+                {infoErro && <p className="msg-erro text-red-700 px-3 pb-3">{infoErro}</p>}
                 <div className="grid grid-cols-3 gap-4">
                     {locais.map((local) => (
                         <div
                             key={local.id_local}
-                            className="p-5 rounded-lg bg-secondary-color/50 border border-gray-400"
+                            className="relative p-5 pr-14 rounded-lg bg-secondary-color/50 border border-gray-400"
                         >
+                            <button
+                                type="button"
+                                title="Excluir local"
+                                disabled={excluindo === local.id_local}
+                                onClick={() => excluirLocal(local)}
+                                className="material-icons absolute right-3 top-3 p-2 rounded-lg text-gray-500 hover:text-red-600 hover:scale-110 duration-300 disabled:opacity-50 disabled:hover:scale-100"
+                            >
+                                {excluindo === local.id_local ? "hourglass_empty" : "delete"}
+                            </button>
                             <div className="items-center gap-2">
                                 <h3 className='font-semibold'>Título</h3>
                                 <p className="font-light">{local.nome}</p>
