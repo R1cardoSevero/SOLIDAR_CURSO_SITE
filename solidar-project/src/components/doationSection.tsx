@@ -6,6 +6,7 @@ import { CATEGORIAS, categoriasDoLocal } from "../lib/categorias";
 import type { Categoria } from "../lib/categorias";
 import { mediaDeEstrelas } from "../lib/avaliacoes";
 import { distanciaAte, usePosicaoUsuario } from "../lib/distancia";
+import { useFavoritos } from "../lib/favoritos";
 
 interface LocalDb {
     id_local: string;
@@ -30,7 +31,6 @@ interface Doador {
     id_local: string;
     titulo: string;
     categorias: Categoria[];
-    favorito: boolean;
     url: string;
     numeroEstrelas: number;
     coordenadas: { latitude: number | null, longitude: number | null } | null;
@@ -109,7 +109,6 @@ async function buscarDoadores(): Promise<Doador[]> {
             id_local: local.id_local,
             titulo: local.nome,
             categorias,
-            favorito: false,
             url: local.fotos?.[0] ?? "",
             numeroEstrelas: mediaDeEstrelas(estrelasDoLocal(avaliacoes, local.id_local)),
             coordenadas: endereco ?? null
@@ -119,6 +118,7 @@ async function buscarDoadores(): Promise<Doador[]> {
 
 export default function DoationSection({ id_usuario }: { id_usuario: string }) {
     const minhaPosicao = usePosicaoUsuario();
+    const { ehFavorito, alternarFavorito } = useFavoritos(id_usuario);
     const [doadores, setDoadores] = useState<Doador[]>([]);
     const [carregando, setCarregando] = useState<boolean>(true);
     const [filtrosSelecionados, setFiltrosSelecionados] = useState<FiltrosSelecionados>({
@@ -152,7 +152,7 @@ export default function DoationSection({ id_usuario }: { id_usuario: string }) {
             return false;
         }
 
-        if (filtrosSelecionados.favoritos && !doador.favorito) {
+        if (filtrosSelecionados.favoritos && !ehFavorito(doador.id_local)) {
             return false;
         }
 
@@ -180,6 +180,8 @@ export default function DoationSection({ id_usuario }: { id_usuario: string }) {
                         infoCard={doador}
                         id_usuario={id_usuario}
                         distancia={distanciaAte(minhaPosicao, doador.coordenadas)}
+                        favorito={ehFavorito(doador.id_local)}
+                        onAlternarFavorito={alternarFavorito}
                     />
                 ))}
             </article>

@@ -12,11 +12,13 @@ interface CardDoationProps {
     }
     id_usuario: string;
     distancia: string | null;
+    favorito: boolean;
+    onAlternarFavorito: (id_local: string) => void;
 }
 
 const MAX_ICONES = 3
 
-export default function CardDoation({ infoCard, id_usuario, distancia }: CardDoationProps) {
+export default function CardDoation({ infoCard, id_usuario, distancia, favorito, onAlternarFavorito }: CardDoationProps) {
     const navigate = useNavigate();
     const categoriasVisiveis = infoCard.categorias.slice(0, MAX_ICONES)
     const restantes = infoCard.categorias.length - categoriasVisiveis.length
@@ -24,9 +26,15 @@ export default function CardDoation({ infoCard, id_usuario, distancia }: CardDoa
     return (
         <div className=" relative max-w-xs m-10 rounded-2xl">
             <CardStars numeroEstrelas={infoCard.numeroEstrelas} />
-            <span className="material-icons absolute right-0 top-0 p-3 m-2 rounded-lg bg-[#f1f1f1] text-gray-400">
+            <button
+                type="button"
+                title={favorito ? "Remover dos favoritos" : "Salvar nos favoritos"}
+                aria-pressed={favorito}
+                onClick={() => onAlternarFavorito(infoCard.id_local)}
+                className={`material-icons absolute right-0 top-0 p-3 m-2 rounded-lg bg-[#f1f1f1] hover:scale-110 duration-300 ${favorito ? "text-red-600" : "text-gray-400"}`}
+            >
                 favorite
-            </span>
+            </button>
             {infoCard.url ? (
                 <img src={infoCard.url} alt="foto da casa de doacao" className="rounded-2xl h-65 w-250 object-cover" />
             ) : (
